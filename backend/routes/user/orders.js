@@ -51,7 +51,6 @@ router.post('/',checkAuth, async (req, res, next) => {
             });
         }
         const status = 'pending';
-        Token.lastToken = 12;
         const token = (Token.lastToken || 0) + 1;
         console.log(Token.lastToken);
         Token.lastToken = token;
