@@ -49,6 +49,7 @@ router.post('/',checkAuth, async (req, res, next) => {
         }
         const status = 'pending';
         const token = (User.lastToken || 0) + 1;
+        User.lastToken = token;
         let totalAmount=0;
         if (product.category === 'plastic') {
             const plasticItem = {
