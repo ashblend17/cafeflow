@@ -2,9 +2,12 @@ const express = require('express');
 const router = express.Router();
 const max=100000;
 require('dotenv').config();
+const Token=require('../../models/token');
 const User=require('../../models/users');
 const checkAuth=require('../../middleware/auth');
 const products=require('../../models/products');
+
+
 //getting order details of user
 router.get('/',checkAuth, (req, res,next) => {
     const userId = req.userData.userId;
@@ -48,8 +51,10 @@ router.post('/',checkAuth, async (req, res, next) => {
             });
         }
         const status = 'pending';
-        const token = (User.lastToken || 0) + 1;
-        User.lastToken = token;
+        Token.lastToken = 12;
+        const token = (Token.lastToken || 0) + 1;
+        console.log(Token.lastToken);
+        Token.lastToken = token;
         let totalAmount=0;
         if (product.category === 'plastic') {
             const plasticItem = {
@@ -59,9 +64,8 @@ router.post('/',checkAuth, async (req, res, next) => {
                 quantity: quantity,
                 status: status
             };
-        user.plasticDetails.push(plasticItem);
+            user.plasticDetails.push(plasticItem);
         } 
-        console.log("here");
         totalAmount=product.cost*quantity;
         const orderDetails = {
             date: date,
@@ -93,33 +97,33 @@ router.post('/',checkAuth, async (req, res, next) => {
 });
 
 //confirming order by user
-//took orderid
-router.put('/confirm',checkAuth, async (req, res, next) => { 
-    const userId = req.userData.userId;
-    const { orderId } = req.body;
+// //took orderid
+// router.put('/confirm',checkAuth, async (req, res, next) => { 
+//     const userId = req.userData.userId;
+//     const { orderId } = req.body;
     
-    try {
-        const user = await User.findOne({ userId }).exec();
-        if (!user) {
-            return res.status(400).json({
-                message: 'User not found'
-            });
-        }
-        const order = user.orderDetails.find(order => order._id.toString() === orderId);
-        if (!order) {
-            return res.status(400).json({ message: 'Order not found' });
-        }
-        order.status = 'confirmed';
-        await user.save();
-        return res.status(200).json({ message: 'Order confirmed successfully' });
-    }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
-    };
-});
+//     try {
+//         const user = await User.findOne({ userId }).exec();
+//         if (!user) {
+//             return res.status(400).json({
+//                 message: 'User not found'
+//             });
+//         }
+//         const order = user.orderDetails.find(order => order._id.toString() === orderId);
+//         if (!order) {
+//             return res.status(400).json({ message: 'Order not found' });
+//         }
+//         order.status = 'confirmed';
+//         await user.save();
+//         return res.status(200).json({ message: 'Order confirmed successfully' });
+//     }
+//     catch (err) {
+//         console.error(err);
+//         res.status(500).json({
+//             message: 'Internal server error'
+//         });
+//     };
+// });
 
 // cancelling order
 router.put('/cancel',checkAuth,async (req,res,next)=>{
@@ -136,6 +140,11 @@ router.put('/cancel',checkAuth,async (req,res,next)=>{
         const order = user.orderDetails.find(order => order._id.toString() === orderId);
         if (!order) {
             return res.status(400).json({ message: 'Order not found' });
+        }
+        const plastictoken = order.token;
+        const plastic = user.plasticDetails.find(plastic => plastic.token === plastictoken);
+        if (plastic) {
+            plastic.status = 'cancelled';
         }
         order.status = 'cancelled';
         await user.save();
@@ -160,9 +169,14 @@ router.put('/pay',checkAuth,async (req,res,next)=>{
                 message: 'User not found'
             });
         }
+        const plastictoken = order.token;
+        const plastic = user.plasticDetails.find(plastic => plastic.token === plastictoken);
         const order = user.orderDetails.find(order => order._id.toString() === orderId);
         if (!order) {
             return res.status(400).json({ message: 'Order not found' });
+        }
+        if(plastic){
+            plastic.status = 'paid';
         }
         order.status = 'paid';
         await user.save();

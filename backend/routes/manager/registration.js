@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt=require('bcrypt');
 const {signAccessToken}=require('../../helpers/jwt_helper');
+const Token=require('../../models/token');
 require('dotenv').config();
 const User=require('../../models/managers');
 

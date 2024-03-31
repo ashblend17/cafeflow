@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Products=require('../../models/products');
+const Token=require('../../models/token');
 const max=100;
 require('dotenv').config();
 const checkAuth=require('../../middleware/managerAuth');

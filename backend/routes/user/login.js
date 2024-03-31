@@ -1,6 +1,7 @@
 const mongoose=require('mongoose');
 const express = require('express');
 require('dotenv').config();
+const Token=require('../../models/token');
 const bcrypt=require('bcrypt');
 const {signAccessToken}=require('../../helpers/jwt_helper');
 const router = express.Router();

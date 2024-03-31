@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+
+
+//creates tokens
 module.exports = {
     signAccessToken: (userId,userRole) => {
         return new Promise((resolve, reject) => {
@@ -9,7 +12,7 @@ module.exports = {
                 userRole:userRole
             };
             const options = {
-                expiresIn: '1h'
+                expiresIn: '18h'
             };
             
             jwt.sign(payload, process.env.jwt_key, options, (err, token) => {

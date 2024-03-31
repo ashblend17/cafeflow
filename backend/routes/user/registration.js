@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt=require('bcrypt');
 const {signAccessToken}=require('../../helpers/jwt_helper');
 require('dotenv').config();
+const Token=require('../../models/token');
 const User=require('../../models/users');
 router.post('/', (req, res,next) => {
     const {userId,name,email,password}=req.body;

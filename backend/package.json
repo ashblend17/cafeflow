@@ -4,6 +4,7 @@
   "description": "creation of rest api",
   "main": "script.js",
   "scripts": {
+    "npm setup": "npm install -y",
     "start": "nodemon server.js"
   },
   "author": "sasya",

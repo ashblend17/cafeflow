@@ -12,21 +12,18 @@ router.get('/orders', checkAuth,(req, res, next) => {
         .select('userId orderDetails')
         .exec()
         .then(users => {
-            const AllOrderDetails = users.map(user => ({
-                userId: user.userId,
-                orderDetails: user.orderDetails
-            .filter(order => order.status === 'paid')
-            .map(order => ({
-                date: order.date,
-                itemName: order.itemName,
-                quantity: order.quantity,
-                token:order.token
-            }))
-            }));
-            return res.status(200).json({
-                message: 'active orders',
-                AllOrderDetails: AllOrderDetails
-            });
+            const AllOrderDetails = users.flatMap(user => 
+                user.orderDetails
+                .filter(order => order.status === 'paid')
+                .map(order => ({
+                    userId: user.userId,
+                    date: order.date,
+                    itemName: order.itemName,
+                    quantity: order.quantity,
+                    token: order.token
+                }))
+            );
+            return res.status(200).json(AllOrderDetails);
         })
         .catch(err => {
             return res.status(500).json({
@@ -34,7 +31,6 @@ router.get('/orders', checkAuth,(req, res, next) => {
             });
         });
 });
-
 
 
 

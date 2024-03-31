@@ -2,31 +2,37 @@ const express=require('express');
 const router=express.Router();
 require('dotenv').config();
 const checkAuth=require('../../middleware/auth');
+const Token=require('../../models/token');
 const User=require('../../models/users');
-router.get('/',checkAuth,(req,res,next)=>{
+
+
+
+
+router.get('/', checkAuth, (req, res, next) => {
     const userId = req.userData.userId;
-    User.findOne({userId}).exec()
-    .then(user=>{
-        if(!user){
-            return res.status(400).json({
-                message:'user not found'
-            })
-        }
-        else{
-            res.status(200).json({
-                message:'listed plastic items of user',
-                userId:userId,
-                plasticDetails:user.plasticDetails
-            })
-        }
-    })
-    .catch(err=>{
-        console.log(err);
-        return res.status(400).json({
-            message:'Internal server error'
+    User.findOne({ userId }).exec()
+        .then(user => {
+            if (!user) {
+                return res.status(400).json({
+                    message: 'User not found'
+                });
+            } else {
+                const deliveredPlasticDetails = user.plasticDetails.filter(detail => detail.status === 'delivered');
+                res.status(200).json(deliveredPlasticDetails);
+            }
         })
-    });
+        .catch(err => {
+            console.log(err);
+            return res.status(400).json({
+                message: 'Internal server error'
+            });
+        });
 });
+
+
+
+
+
 router.get('/plastic_count',checkAuth,(req,res,next)=>{
     const userId = req.userData.userId;
     User.findOne({userId}).exec()
@@ -54,7 +60,8 @@ router.get('/plastic_count',checkAuth,(req,res,next)=>{
 
 router.post('/return',checkAuth,(req,res,next)=>{
     const userId = req.userData.userId;
-    const {date,itemName,token,quantity}=req.body;
+    const {token}=req.body;
+    console.log(token);
     User.findOne( {userId})
         .exec()
     .then(user=>{
@@ -63,35 +70,22 @@ router.post('/return',checkAuth,(req,res,next)=>{
                 message:'user not found'
             })
         }
-        
         else{
-            if(user.plasticDetails.length===0){
-                return res.status(400).json({
-                    message:'no palstics items to return'
-                })
-            }
-            else{
-                const plasticItem = user.plasticDetails.find(item => {
-                    return item.date === date && item.itemName === itemName && item.token === parseInt(token);
-                });
-
-                if (!plasticItem) {
-                    return res.status(400).json({
-                        message: 'Plastic item not found for the provided date, itemName, and token'
-                    });
-                }
-
-            if(plasticItem.quantity ===1){
-                user.plasticDetails.pull(plasticItem);
-            }
-            else if(plasticItem.quantity>1){
-                plasticItem.quantity-=quantity
-            }
             
+            const plasticItem = user.plasticDetails.find(item => {
+                return item.token === parseInt(token);
+            });
+
+            if (!plasticItem) {
+                return res.status(400).json({
+                    message: 'Plastic item not found for the provided token'
+                });
+            }
+            plasticItem.status = 'returning';
             user.save()
             .then(result=>{
                 res.status(200).json({
-                    message:'returned plastic item',
+                    message:'plastic item sent for returning',
                     userId:userId,
                     plasticItem:plasticItem
                 })
@@ -102,7 +96,7 @@ router.post('/return',checkAuth,(req,res,next)=>{
                     message:'Internal server error'
                 })
             });
-        }
+        
         }
     })
     .catch(err=>{
@@ -111,4 +105,7 @@ router.post('/return',checkAuth,(req,res,next)=>{
         })
     });
 });
+
+
+
 module.exports=router;
