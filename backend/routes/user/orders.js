@@ -33,9 +33,9 @@ router.get('/',checkAuth, (req, res,next) => {
     });
 });
 
-router.post('/',checkAuth, async (req, res, next) => {
+router.post('/', checkAuth, async (req, res, next) => {
     const userId = req.userData.userId;
-    const { date, itemName,quantity} = req.body;
+    const { date, itemName, quantity } = req.body;
 
     try {
         const user = await User.findOne({ userId }).exec();
@@ -51,10 +51,12 @@ router.post('/',checkAuth, async (req, res, next) => {
             });
         }
         const status = 'pending';
-        const token = (Token.lastToken || 0) + 1;
-        console.log(Token.lastToken);
-        Token.lastToken = token;
-        let totalAmount=0;
+
+        // Fetch and update the token
+        const tokenDoc = await Token.findOneAndUpdate({}, { $inc: { lastToken: 1 } }, { new: true, upsert: true }).exec();
+        const token = tokenDoc.lastToken;
+
+        let totalAmount = 0;
         if (product.category === 'plastic') {
             const plasticItem = {
                 date: date,
@@ -64,8 +66,8 @@ router.post('/',checkAuth, async (req, res, next) => {
                 status: status
             };
             user.plasticDetails.push(plasticItem);
-        } 
-        totalAmount=product.cost*quantity;
+        }
+        totalAmount = product.cost * quantity;
         const orderDetails = {
             date: date,
             itemName: itemName,
@@ -76,11 +78,8 @@ router.post('/',checkAuth, async (req, res, next) => {
         };
         user.orderDetails.push(orderDetails);
 
-
-        
         await user.save();
 
-        
         return res.status(200).json({
             message: 'Order placed successfully',
             totalAmount: totalAmount,

@@ -108,7 +108,7 @@ router.put('/return',checkAuth,(req,res,next)=>{
 //route for rejecting plastic of specific user
 router.put('/reject', checkAuth, (req, res, next) => {
     const { token } = req.body;
-    User.findOneAndUpdate({ "plasticDetails.token": token }, { "plasticDetails.$.status": 'rejected' })
+    User.findOneAndUpdate({ "plasticDetails.token": token }, { "plasticDetails.$.status": 'delivered' })
         .exec()
         .then(user => {
             if (!user) {

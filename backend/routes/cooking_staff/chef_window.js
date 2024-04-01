@@ -20,7 +20,8 @@ router.get('/orders', checkAuth,(req, res, next) => {
                     date: order.date,
                     itemName: order.itemName,
                     quantity: order.quantity,
-                    token: order.token
+                    token: order.token,
+                    orderId:order._id
                 }))
             );
             return res.status(200).json(AllOrderDetails);
