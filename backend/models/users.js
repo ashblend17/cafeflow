@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema({
             quantity: { type: Number, required: true },
             totalAmount: { type: Number, required: true },
             status: { type: String, required: true }, // pending, accepted/rejected, confirmed, preparing, ready, delivered
-            token: { type: Number, required: true } //sequential number
+            token: { type: Number, required: true }, //sequential number
+            category: { type: String, required: false } //plastic, food
         }
     ],
 });

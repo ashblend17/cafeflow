@@ -14,14 +14,15 @@ router.get('/orders', checkAuth,(req, res, next) => {
         .then(users => {
             const AllOrderDetails = users.flatMap(user => 
                 user.orderDetails
-                .filter(order => order.status === 'paid')
+                .filter(order => ['paid', 'ready'].includes(order.status) && order.category !== 'plastic')
                 .map(order => ({
                     userId: user.userId,
                     date: order.date,
                     itemName: order.itemName,
                     quantity: order.quantity,
                     token: order.token,
-                    orderId:order._id
+                    orderId:order._id,
+                    status: order.status
                 }))
             );
             return res.status(200).json(AllOrderDetails);
@@ -32,7 +33,6 @@ router.get('/orders', checkAuth,(req, res, next) => {
             });
         });
 });
-
 
 
 
@@ -71,20 +71,17 @@ router.post('/notify/:orderId',checkAuth,async (req,res,next)=>{
 
 
 //delivered
-router.post('/deliver/:orderId', checkAuth,  async (req,res,next)=>{
-    const orderId=req.params.orderId;
-    const {userId}=req.body;
+router.post('/deliver', checkAuth,  async (req,res,next)=>{
+    const orderId=req.body.orderId;
+    console.log(orderId)
     try {
-        const user = await User.findOne({ userId }).exec();
+        const user = await User.findOne({ 'orderDetails': { $elemMatch: { _id: orderId } } }).exec();
         if (!user) {
             return res.status(400).json({
-                message: 'User not found'
+                message: 'Order not found'
             });
         }
-        const order = user.orderDetails.find(order => order._id.toString() === orderId);
-        if (!order) {
-            return res.status(400).json({ message: 'Order not found' });
-        }
+        const order = user.orderDetails.id(orderId);
         order.status = 'delivered';
         await user.save();
         return res.status(200).json({ message: 'order delivered' });

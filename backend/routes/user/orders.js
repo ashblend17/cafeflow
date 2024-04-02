@@ -74,7 +74,8 @@ router.post('/', checkAuth, async (req, res, next) => {
             quantity: quantity,
             totalAmount: product.cost * quantity,
             status: status,
-            token: token
+            token: token,
+            category: product.category
         };
         user.orderDetails.push(orderDetails);
 
