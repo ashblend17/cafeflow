@@ -8,7 +8,7 @@ require('dotenv').config();
 //getting all active/paid for orders
 //has to change response json
 router.get('/orders', checkAuth,(req, res, next) => {
-    User.find({ 'orderDetails.status': 'paid' })
+    User.find({ 'orderDetails.status': { $in: ['paid', 'ready'] } })
         .select('userId orderDetails')
         .exec()
         .then(users => {
